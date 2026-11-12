@@ -136,12 +136,22 @@
             <span class="search-icon" aria-hidden="true">🔍</span>
             <input type="search" id="searchInput" placeholder="Tìm câu hỏi, từ khóa (VD: operon, 5BU, nucleosome, Mendel)..." autocomplete="off" />
           </div>
-          <div class="filter-pills" id="filterPills">
-            <button type="button" class="pill active" data-filter="all">Tất cả</button>
-            <button type="button" class="pill" data-filter="unanswered">Chưa làm</button>
-            <button type="button" class="pill" data-filter="wrong">Làm sai</button>
-            <button type="button" class="pill" data-filter="image">Có hình ảnh</button>
-            <button type="button" class="pill" data-filter="bookmarked">Đã đánh dấu</button>
+          <div class="toolbar-row">
+            <div class="filter-pills" id="filterPills">
+              <button type="button" class="pill active" data-filter="all">Tất cả</button>
+              <button type="button" class="pill" data-filter="unanswered">Chưa làm</button>
+              <button type="button" class="pill" data-filter="wrong">Làm sai</button>
+              <button type="button" class="pill" data-filter="image">Có hình ảnh</button>
+              <button type="button" class="pill" data-filter="bookmarked">Đã đánh dấu</button>
+            </div>
+            <div class="shuffle-controls">
+              <button type="button" class="ghost-btn small" id="btnShuffle" title="Xáo trộn ngẫu nhiên thứ tự câu hỏi">
+                🔀 Xáo trộn câu hỏi
+              </button>
+              <button type="button" class="ghost-btn small" id="btnUnshuffle" hidden title="Quay lại thứ tự gốc trong file PDF">
+                ↩ Thứ tự gốc
+              </button>
+            </div>
           </div>
         </div>
 

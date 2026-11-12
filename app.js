@@ -50,7 +50,8 @@
       answers: {},
       checkedShort: {},
       bookmarks: {},
-      examSubmitted: {}
+      examSubmitted: {},
+      shuffledOrders: {}
     };
   }
 
@@ -91,7 +92,16 @@
       .replace(/"/g, "&quot;");
   }
 
-  function getSectionItems(sectionKey) {
+  function shuffleArray(arr) {
+    const copy = arr.slice();
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+  }
+
+  function getRawSectionItems(sectionKey) {
     const sec = SECTIONS[sectionKey];
     if (sec.kind === "decuong-p1") {
       return window.DECUONG_P1.map((q) => ({ ...q, qType: "mcq" }));
@@ -108,6 +118,58 @@
       ...ex.p2.map((q) => ({ ...q, qType: "tf", partLabel: "Phần II. Trắc nghiệm Đúng / Sai (Câu 1 – 4)" })),
       ...ex.p3.map((q) => ({ ...q, qType: "short", partLabel: "Phần III. Trắc nghiệm Trả lời ngắn (Câu 1 – 6)" }))
     ];
+  }
+
+  function getSectionItems(sectionKey) {
+    const raw = getRawSectionItems(sectionKey);
+    const savedOrder = state.shuffledOrders && state.shuffledOrders[sectionKey];
+    const isShuffled = Array.isArray(savedOrder) && savedOrder.length > 0;
+
+    let ordered = raw;
+    if (isShuffled) {
+      const byId = new Map(raw.map((q) => [q.id, q]));
+      const picked = [];
+      const seen = new Set();
+      savedOrder.forEach((id) => {
+        if (byId.has(id) && !seen.has(id)) {
+          picked.push(byId.get(id));
+          seen.add(id);
+        }
+      });
+      raw.forEach((q) => {
+        if (!seen.has(q.id)) picked.push(q);
+      });
+      ordered = picked;
+    }
+
+    const partCounters = { mcq: 0, tf: 0, short: 0 };
+    return ordered.map((q, idx) => {
+      partCounters[q.qType] = (partCounters[q.qType] || 0) + 1;
+      const isExam = SECTIONS[sectionKey].kind === "exam";
+      const displayNum = isExam ? partCounters[q.qType] : idx + 1;
+      return {
+        ...q,
+        isShuffled,
+        displayNum,
+        origShortLabel: q.label || `Câu ${q.num}`
+      };
+    });
+  }
+
+  function shuffleSection(sectionKey) {
+    const sec = SECTIONS[sectionKey];
+    const raw = getRawSectionItems(sectionKey);
+    let ids = [];
+    if (sec.kind === "exam") {
+      const p1 = shuffleArray(raw.filter((q) => q.qType === "mcq").map((q) => q.id));
+      const p2 = shuffleArray(raw.filter((q) => q.qType === "tf").map((q) => q.id));
+      const p3 = shuffleArray(raw.filter((q) => q.qType === "short").map((q) => q.id));
+      ids = [...p1, ...p2, ...p3];
+    } else {
+      ids = shuffleArray(raw.map((q) => q.id));
+    }
+    if (!state.shuffledOrders) state.shuffledOrders = {};
+    state.shuffledOrders[sectionKey] = ids;
   }
 
   function isRevealAllowed(sectionKey) {
@@ -208,6 +270,8 @@
   const elMobileStatsText = document.getElementById("mobileStatsText");
   const elSearchInput = document.getElementById("searchInput");
   const elFilterPills = document.getElementById("filterPills");
+  const elBtnShuffle = document.getElementById("btnShuffle");
+  const elBtnUnshuffle = document.getElementById("btnUnshuffle");
   const elExamActionBox = document.getElementById("examActionBox");
   const elBtnSubmitExam = document.getElementById("btnSubmitExam");
   const elExamScoreCard = document.getElementById("examScoreCard");
@@ -240,6 +304,11 @@
     elBtnToggleAllExplain.textContent = state.showAllExplain
       ? "📕 Ẩn bớt giải thích sẵn"
       : "📖 Mở toàn bộ giải thích";
+
+    const isShuffled = !!(state.shuffledOrders && state.shuffledOrders[state.section]);
+    elBtnShuffle.classList.toggle("active", isShuffled);
+    elBtnShuffle.textContent = isShuffled ? "🔀 Xáo trộn lại" : "🔀 Xáo trộn câu hỏi";
+    elBtnUnshuffle.hidden = !isShuffled;
   }
 
   function renderStatsAndPalette(items) {
@@ -300,12 +369,16 @@
         else if (st === "partial") cls.push("partial");
         else if (st === "answered") cls.push("answered");
         if (state.bookmarks[q.id]) cls.push("bookmarked");
+        const palNum = q.isShuffled ? q.displayNum : q.num;
         const shortLabel = q.qType === "tf" && SECTIONS[state.section].kind === "exam"
-          ? `II.${q.num}`
+          ? `II.${palNum}`
           : q.qType === "short" && SECTIONS[state.section].kind === "exam"
-          ? `III.${q.num}`
-          : String(q.num);
-        return `<button type="button" class="${cls.join(" ")}" data-jump="${q.id}" title="Tới ${escapeHtml(q.label || `Câu ${q.num}`)}">${escapeHtml(shortLabel)}</button>`;
+          ? `III.${palNum}`
+          : String(palNum);
+        const palTitle = q.isShuffled
+          ? `Tới Câu ${q.displayNum} (gốc ${q.origShortLabel})`
+          : `Tới ${q.origShortLabel}`;
+        return `<button type="button" class="${cls.join(" ")}" data-jump="${q.id}" title="${escapeHtml(palTitle)}">${escapeHtml(shortLabel)}</button>`;
       })
       .join("");
   }
@@ -375,6 +448,13 @@
         ${img.caption ? `<p class="diagram-caption">${escapeHtml(img.caption)} (Nhấn vào ảnh để phóng to)</p>` : ""}
       </div>
     `;
+  }
+
+  function formatQuestionBadge(q) {
+    if (q.isShuffled) {
+      return `Câu ${q.displayNum} (gốc ${q.origShortLabel})`;
+    }
+    return q.label || `Câu ${q.num}`;
   }
 
   function renderMcqCard(q, reveal) {
@@ -478,7 +558,7 @@
       <article class="${cardCls}" id="q-${q.id}">
         <div class="q-head">
           <div class="q-badges">
-            <span class="q-num">Câu ${q.num}</span>
+            <span class="q-num">${escapeHtml(formatQuestionBadge(q))}</span>
             ${statusTag}
           </div>
           <div class="q-actions-mini">
@@ -589,7 +669,7 @@
       <article class="${cardCls}" id="q-${q.id}">
         <div class="q-head">
           <div class="q-badges">
-            <span class="q-num">${escapeHtml(q.label || `Câu ${q.num}`)}</span>
+            <span class="q-num">${escapeHtml(formatQuestionBadge(q))}</span>
             ${statusTag}
           </div>
           <div class="q-actions-mini">
@@ -647,7 +727,7 @@
       <article class="${cardCls}" id="q-${q.id}">
         <div class="q-head">
           <div class="q-badges">
-            <span class="q-num">${escapeHtml(q.label || `Câu ${q.num}`)}</span>
+            <span class="q-num">${escapeHtml(formatQuestionBadge(q))}</span>
             ${statusTag}
           </div>
           <div class="q-actions-mini">
@@ -786,6 +866,22 @@
 
   elBtnToggleAllExplain.addEventListener("click", () => {
     state.showAllExplain = !state.showAllExplain;
+    saveState();
+    syncTopControls();
+    renderAll();
+  });
+
+  elBtnShuffle.addEventListener("click", () => {
+    shuffleSection(state.section);
+    saveState();
+    syncTopControls();
+    renderAll();
+  });
+
+  elBtnUnshuffle.addEventListener("click", () => {
+    if (state.shuffledOrders) {
+      delete state.shuffledOrders[state.section];
+    }
     saveState();
     syncTopControls();
     renderAll();

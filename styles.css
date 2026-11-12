@@ -605,10 +605,25 @@ input {
   border-color: var(--primary);
 }
 
+.toolbar-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .filter-pills {
   display: flex;
   flex-wrap: wrap;
   gap: 7px;
+}
+
+.shuffle-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
 .pill {
