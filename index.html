@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ôn Tập Sinh Học 12 – Giữa Học Kì I (CT GDPT 2018)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Top Header -->
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">
+          <div class="brand-icon" aria-hidden="true">🧬</div>
+          <div class="brand-text">
+            <h1>Ôn Tập Sinh Học 12 · Giữa HK I</h1>
+            <p>Đề cương &amp; Bộ đề dự đoán THPT Nguyễn Hữu Cảnh (CT GDPT 2018)</p>
+          </div>
+        </div>
+
+        <div class="topbar-actions">
+          <div class="mode-switch" role="group" aria-label="Chế độ làm bài">
+            <button type="button" class="mode-btn active" data-mode="practice" id="btnModePractice">
+              <span class="dot"></span> Ôn tập (Giải thích ngay)
+            </button>
+            <button type="button" class="mode-btn" data-mode="exam" id="btnModeExam">
+              <span class="dot"></span> Thi thử (Nộp mới chấm)
+            </button>
+          </div>
+
+          <button type="button" class="icon-btn" id="btnThemeToggle" title="Chuyển chế độ Sáng / Tối" aria-label="Chuyển chế độ Sáng / Tối">
+            🌙
+          </button>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="section-nav" id="sectionNav" aria-label="Chọn phần ôn tập">
+        <button type="button" class="nav-tab active" data-section="dc-p1">
+          <span class="tab-badge">Đề cương</span>
+          <span class="tab-title">Phần I: Trắc nghiệm</span>
+          <span class="tab-count">73 câu</span>
+        </button>
+        <button type="button" class="nav-tab" data-section="dc-p2">
+          <span class="tab-badge">Đề cương</span>
+          <span class="tab-title">Phần II: Đúng / Sai</span>
+          <span class="tab-count">6 câu · 24 ý</span>
+        </button>
+        <button type="button" class="nav-tab" data-section="dc-p3">
+          <span class="tab-badge">Đề cương</span>
+          <span class="tab-title">Phần III: Trả lời ngắn</span>
+          <span class="tab-count">8 câu</span>
+        </button>
+        <button type="button" class="nav-tab" data-section="de-201">
+          <span class="tab-badge exam">Đề dự đoán</span>
+          <span class="tab-title">Mã đề 201</span>
+          <span class="tab-count">28 câu</span>
+        </button>
+        <button type="button" class="nav-tab" data-section="de-202">
+          <span class="tab-badge exam">Đề dự đoán</span>
+          <span class="tab-title">Mã đề 202</span>
+          <span class="tab-count">28 câu</span>
+        </button>
+        <button type="button" class="nav-tab" data-section="de-203">
+          <span class="tab-badge exam">Đề dự đoán</span>
+          <span class="tab-title">Mã đề 203</span>
+          <span class="tab-count">28 câu</span>
+        </button>
+      </nav>
+    </header>
+
+    <!-- Main Content Grid -->
+    <div class="workspace">
+      <!-- Sidebar Palette -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-card">
+          <div class="sidebar-header">
+            <h2>Tiến độ phần này</h2>
+            <span class="progress-percent" id="progressPercent">0%</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+          </div>
+          <div class="stats-grid" id="statsGrid">
+            <div class="stat-item">
+              <span class="stat-val correct" id="statCorrect">0</span>
+              <span class="stat-lbl">Đúng</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-val wrong" id="statWrong">0</span>
+              <span class="stat-lbl">Sai</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-val pending" id="statPending">0</span>
+              <span class="stat-lbl">Chưa làm</span>
+            </div>
+          </div>
+
+          <div class="exam-action-box" id="examActionBox" hidden>
+            <button type="button" class="primary-btn full-width" id="btnSubmitExam">
+              Nộp bài &amp; Chấm điểm
+            </button>
+            <div class="exam-score-card" id="examScoreCard" hidden></div>
+          </div>
+
+          <div class="palette-header">
+            <h3>Bảng câu hỏi</h3>
+            <div class="palette-legend">
+              <span><i class="lg-dot ok"></i>Đúng</span>
+              <span><i class="lg-dot err"></i>Sai</span>
+              <span><i class="lg-dot mark"></i>Lưu</span>
+            </div>
+          </div>
+          <div class="palette-grid" id="paletteGrid"></div>
+
+          <div class="sidebar-footer">
+            <button type="button" class="ghost-btn full-width" id="btnToggleAllExplain">
+              📖 Mở toàn bộ giải thích
+            </button>
+            <button type="button" class="ghost-btn danger full-width" id="btnResetSection">
+              ↺ Làm lại phần này
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Question Feed -->
+      <main class="main-col">
+        <!-- Toolbar -->
+        <div class="toolbar">
+          <div class="search-wrap">
+            <span class="search-icon" aria-hidden="true">🔍</span>
+            <input type="search" id="searchInput" placeholder="Tìm câu hỏi, từ khóa (VD: operon, 5BU, nucleosome, Mendel)..." autocomplete="off" />
+          </div>
+          <div class="filter-pills" id="filterPills">
+            <button type="button" class="pill active" data-filter="all">Tất cả</button>
+            <button type="button" class="pill" data-filter="unanswered">Chưa làm</button>
+            <button type="button" class="pill" data-filter="wrong">Làm sai</button>
+            <button type="button" class="pill" data-filter="image">Có hình ảnh</button>
+            <button type="button" class="pill" data-filter="bookmarked">Đã đánh dấu</button>
+          </div>
+        </div>
+
+        <!-- Mobile quick bar -->
+        <div class="mobile-summary" id="mobileSummary">
+          <span id="mobileStatsText">Đã làm: 0</span>
+          <button type="button" class="ghost-btn small" id="btnOpenPaletteMobile">Bảng câu hỏi</button>
+        </div>
+
+        <!-- Section Intro Banner -->
+        <div class="section-banner" id="sectionBanner"></div>
+
+        <!-- Questions Container -->
+        <div class="questions-list" id="questionsList"></div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Image Lightbox Modal -->
+  <div class="lightbox" id="lightbox" hidden aria-modal="true" role="dialog">
+    <div class="lightbox-backdrop" id="lightboxBackdrop"></div>
+    <div class="lightbox-content">
+      <button type="button" class="lightbox-close" id="lightboxClose" aria-label="Đóng ảnh">✕</button>
+      <img id="lightboxImg" src="" alt="" />
+      <p class="lightbox-caption" id="lightboxCaption"></p>
+    </div>
+  </div>
+
+  <!-- Data Scripts -->
+  <script src="data/decuong-p1.js"></script>
+  <script src="data/decuong-p2.js"></script>
+  <script src="data/decuong-p3.js"></script>
+  <script src="data/dethi-201.js"></script>
+  <script src="data/dethi-202.js"></script>
+  <script src="data/dethi-203.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
